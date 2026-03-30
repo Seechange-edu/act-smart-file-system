@@ -66,7 +66,7 @@ jobs:
       - name: Copy ${{ env.ACTIVE }}.env to server
         uses: appleboy/scp-action@v1
         with:
-          host: ${{ vars.AWS_DEVELOPMENT_SERVER_IP }}
+          host: ${{ env.REMOTE_HOST }}
           username: ${{ vars.AWS_DEVELOPMENT_SERVER_LOGIN }}
           key: ${{ secrets.REMOTE_AWS_DEV_PRIVATE_SSH_KEY }}
           port: 22
@@ -83,7 +83,7 @@ jobs:
           ACTIVE: ${{ env.ACTIVE }}
           OUTPORT: ${{ env.OUT_PORT }}
         with:
-          host: ${{ vars.AWS_DEVELOPMENT_SERVER_IP }}
+          host: ${{ vars.REMOTE_HOST }}
           username: ${{ vars.AWS_DEVELOPMENT_SERVER_LOGIN }}
           key: ${{ secrets.REMOTE_AWS_DEV_PRIVATE_SSH_KEY }}
           envs: ECR_TOKEN,ECR_REGISTRY,ECR_REPOSITORY,ACTIVE,OUTPORT
