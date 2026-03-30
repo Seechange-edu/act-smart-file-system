@@ -83,7 +83,7 @@ jobs:
           ACTIVE: ${{ env.ACTIVE }}
           OUTPORT: ${{ env.OUT_PORT }}
         with:
-          host: ${{ vars.REMOTE_HOST }}
+          host: ${{ env.REMOTE_HOST }}
           username: ${{ vars.AWS_DEVELOPMENT_SERVER_LOGIN }}
           key: ${{ secrets.REMOTE_AWS_DEV_PRIVATE_SSH_KEY }}
           envs: ECR_TOKEN,ECR_REGISTRY,ECR_REPOSITORY,ACTIVE,OUTPORT
