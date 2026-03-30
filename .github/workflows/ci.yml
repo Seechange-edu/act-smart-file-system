@@ -49,7 +49,7 @@ jobs:
           ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
           ACTIVE: ${{ env.ACTIVE }}
         run: |
-          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:${IMAGE_TAG}${{ github.sha }}"
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:${ACTIVE}${{ github.sha }}"
           docker build --tag ${IMAGE_URI} --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:latest --file Dockerfile .
           docker push ${IMAGE_URI}
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:latest
@@ -90,7 +90,7 @@ jobs:
           script: |
             echo ${ECR_TOKEN} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
             ENV_FILE="/home/forge/smart-file-system-${ACTIVE}/${ACTIVE}.env"
-            IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:${IMAGE_TAG}${{ github.sha }}"
+            IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:${ACTIVE}${{ github.sha }}"
             docker pull ${IMAGE_URI}
             if [ "$(docker ps -a --format '{{.Names}}' | grep -c ${{ env.NAME }})" -gt 0 ]; then
               docker stop -t 30 ${{ env.NAME }} || true
