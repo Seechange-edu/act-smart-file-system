@@ -51,10 +51,10 @@ jobs:
           IMAGE_TAG: ${{ env.BRANCH }}
         run: |
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:${IMAGE_TAG}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_ENV
           docker build --tag ${IMAGE_URI} --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:latest --file Dockerfile .
           docker push ${IMAGE_URI}
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:latest
-          echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_ENV
 
       - name: Get ECR login token
         id: ecr-login-token
@@ -80,19 +80,17 @@ jobs:
         env:
           ECR_TOKEN: ${{ steps.ecr-login-token.outputs.token }}
           ECR_REGISTRY: ${{ steps.login-aws-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.AWS_ECR_REPOSITORY }}
+          IMAGE_URI: ${{ env.IMAGE_URI }}
           ACTIVE: ${{ env.ACTIVE }}
           OUTPORT: ${{ env.OUT_PORT }}
-          IMAGE_TAG: ${{ env.BRANCH }}
         with:
           host: ${{ env.REMOTE_HOST }}
           username: ${{ vars.AWS_DEVELOPMENT_SERVER_LOGIN }}
           key: ${{ secrets.REMOTE_AWS_DEV_PRIVATE_SSH_KEY }}
-          envs: ECR_TOKEN,ECR_REGISTRY,ECR_REPOSITORY,ACTIVE,OUTPORT,IMAGE_TAG
+          envs: ECR_TOKEN,ECR_REGISTRY,IMAGE_URI,ACTIVE,OUTPORT
           script: |
             echo ${ECR_TOKEN} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
             ENV_FILE="/home/forge/smart-file-system-${ACTIVE}/${ACTIVE}.env"
-            IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}/${ACTIVE}:${IMAGE_TAG}"
             docker pull ${IMAGE_URI}
             if [ "$(docker ps -a --format '{{.Names}}' | grep -c ${{ env.NAME }})" -gt 0 ]; then
               docker stop -t 30 ${{ env.NAME }} || true
