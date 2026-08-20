@@ -82,26 +82,35 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-aws-ecr.outputs.registry }}
           IMAGE_URI: ${{ env.IMAGE_URI }}
           ACTIVE: ${{ env.ACTIVE }}
+          # Published ports come from Parse-Action-Tag (PORT/OUT_PORT); the port the app listens on
+          # comes from the repo's env/<ACTIVE>.env. The two are managed separately and must agree.
+          PORT: ${{ env.PORT }}
           OUTPORT: ${{ env.OUT_PORT }}
         with:
           host: ${{ env.REMOTE_HOST }}
           username: ${{ vars.AWS_DEVELOPMENT_SERVER_LOGIN }}
           key: ${{ secrets.REMOTE_AWS_DEV_PRIVATE_SSH_KEY }}
-          envs: ECR_TOKEN,ECR_REGISTRY,IMAGE_URI,ACTIVE,OUTPORT
+          envs: ECR_TOKEN,ECR_REGISTRY,IMAGE_URI,ACTIVE,PORT,OUTPORT
           script: |
             echo ${ECR_TOKEN} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
             ENV_FILE="/home/forge/smart-file-system-${ACTIVE}/${ACTIVE}.env"
+            # NODE_ENV follows the deployed profile. It is not cosmetic: server/db.ts picks
+            # DATABASE_URL_PROD vs DATABASE_URL_DEV from it, and the server serves the built client
+            # instead of Vite when it is "production".
+            case "${ACTIVE}" in
+              prod) NODE_ENV=production ;;
+              *)    NODE_ENV=development ;;
+            esac
             docker pull ${IMAGE_URI}
             if [ "$(docker ps -a --format '{{.Names}}' | grep -c ${{ env.NAME }})" -gt 0 ]; then
               docker stop -t 30 ${{ env.NAME }} || true
               docker rm -f ${{ env.NAME }} || true
             fi
             docker run --name ${{ env.NAME }} -d \
-              -p ${OUTPORT}:5000 \
+              -p ${OUTPORT}:${PORT} \
               -m 1024m \
               --env-file "${ENV_FILE}" \
-              -e NODE_ENV=development \
-              -e PORT=5000 \
+              -e NODE_ENV=${NODE_ENV} \
               -v /home/forge/smart-file-system-${ACTIVE}/uploads:/app/uploads \
               -v /home/forge/smart-file-system-${ACTIVE}/logs:/app/logs \
               --restart unless-stopped \
