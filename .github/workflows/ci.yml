@@ -158,6 +158,10 @@ jobs:
               *)    NODE_ENV=development ;;
             esac
             docker pull "${IMAGE_URI}" || exit 1
+            if [ ! -f "$ENV_FILE" ] || [ ! -r "$ENV_FILE" ]; then
+              echo "Deploy aborted: env file is missing or unreadable: $ENV_FILE" >&2
+              exit 1
+            fi
             if [ "$(docker ps -a --format '{{.Names}}' | grep -c ${{ env.NAME }})" -gt 0 ]; then
               docker stop -t 30 ${{ env.NAME }} || true
               docker rm -f ${{ env.NAME }} || true
