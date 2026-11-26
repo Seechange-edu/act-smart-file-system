@@ -157,7 +157,7 @@ jobs:
               prod) NODE_ENV=production ;;
               *)    NODE_ENV=development ;;
             esac
-            docker pull ${IMAGE_URI}
+            docker pull "${IMAGE_URI}" || exit 1
             if [ "$(docker ps -a --format '{{.Names}}' | grep -c ${{ env.NAME }})" -gt 0 ]; then
               docker stop -t 30 ${{ env.NAME }} || true
               docker rm -f ${{ env.NAME }} || true
